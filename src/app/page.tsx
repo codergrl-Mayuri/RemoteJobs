@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import JobCard from "@/components/Card";
 import SkeletonCard from "@/components/SkeletonCard";
 import SearchBar from "@/components/SearchBar";
+import { Toaster } from "react-hot-toast";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -95,7 +96,8 @@ export default function Home() {
 
   return (
     <>
-      <Header/>
+      <Toaster />
+      <Header />
       <SearchBar />
       <div className="flex flex-col min-h-screen">
         <main className="flex-grow px-9 pb-6">

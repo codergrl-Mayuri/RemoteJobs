@@ -1,9 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, LocateFixed, MapPin } from "lucide-react"; 
+import { useGeolocation } from "@/hooks/useGeolocation";
 import React from "react";
 
 export default function SearchBar() {
+
+    const { location, isActive, handleGetLocation } = useGeolocation();
+
   return (
     <div className={`w-full pt-10 p-4 flex justify-center transition-all duration-300`}>
       <div className="flex items-center w-full max-w-xl sm:max-w-3xl md:max-w-4xl lg:max-w-5xl rounded-lg border border-gray-300 shadow-md bg-white overflow-hidden">
@@ -16,7 +20,10 @@ export default function SearchBar() {
             className="h-10 sm:h-12 border-none pl-8 sm:pl-10 pr-8 sm:pr-10 text-xs sm:text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <LocateFixed
-            className={`absolute right-3 h-5 w-5 cursor-pointer sm:hidden`} 
+            className={`absolute right-3 h-5 w-5 cursor-pointer sm:hidden ${
+              isActive ? "text-blue-600" : "text-gray-400"
+            }`}
+            onClick={handleGetLocation}
           />
         </div>
         <div className="h-8 w-px bg-gray-300 mx-1 sm:mx-2 hidden sm:block" />
@@ -24,12 +31,15 @@ export default function SearchBar() {
           <MapPin className="absolute left-3 h-5 w-5 text-gray-400" />
           <Input
             type="text"
-            value={""}
+            value={location || ""}
             placeholder="City, state or country"
             className="h-10 sm:h-12 border-none pl-8 sm:pl-10 pr-8 sm:pr-10 text-xs sm:text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <LocateFixed
-            className={`absolute right-3 h-5 w-5 cursor-pointer hidden sm:block`} 
+            className={`absolute right-3 h-5 w-5 cursor-pointer hidden sm:block ${
+              isActive ? "text-blue-600" : "text-gray-400"
+            }`}
+            onClick={handleGetLocation}
           />
         </div>
         <Button
