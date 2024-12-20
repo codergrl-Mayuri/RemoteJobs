@@ -1,5 +1,5 @@
 'use client'
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JobCard from "@/components/Card";
@@ -60,6 +60,7 @@ export default function JobsPage() {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error fetching jobs</div>;
   if (data) console.log("Data", data);
+  console.log(data)
 
   return (
     <>
@@ -69,18 +70,21 @@ export default function JobsPage() {
       <div className="flex flex-col min-h-screen">
         <main className="flex-grow px-9 pb-6">
           <section className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-              {data?.pages.map((page) => 
-                page.map((job) => (
-                  <div key={job.id}>
-                    <JobCard
+          {data?.pages.map((page, pageIndex) =>
+              page.map((job, index) => (
+                <div key={`${pageIndex}-${index}`}>
+                  <JobCard
+                    index={index}
                     title={job.title}
                     salary={job.salary}
                     company={job.company}
                     location={job.location}
-                    logoUrl={job.logoUrl} />
-                  </div>
-                ))
-                )}
+                    logoUrl={job.logoUrl}
+                    pageIndex={pageIndex}  // Pass pageIndex for unique ID generation
+                  />
+                </div>
+              ))
+            )}
                 {isFetchingNextPage && 
                   Array.from({ length: 6 }).map((_, index) => (
                 <SkeletonCard key={index} />
