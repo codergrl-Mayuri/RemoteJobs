@@ -1,98 +1,25 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JobCard from "@/components/Card";
 import SkeletonCard from "@/components/SkeletonCard";
 import SearchBar from "@/components/SearchBar";
 import { Toaster } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { fetchJobs } from "@/services/jobService";
 
-export default function Home() {
-  const [loading, setLoading] = useState(true);
+export default function JobsPage() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["jobs", 1],
+    queryFn: () => fetchJobs(1),
+  });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchData = () => {
-      setTimeout(() => setLoading(false), 1000);
-    };
-    fetchData();
-  }, []);
-
-  const jobData = [
-    {
-      id: 1,
-      title: "Senior UX Designer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 2,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 3,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 4,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 5,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 6,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 7,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 8,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-    {
-      id: 9,
-      title: "Marketing Officer",
-      salary: "$20,000 - $25,000",
-      company: "Google Inc.",
-      location: "Dhaka, Bangladesh",
-      logoUrl: "https://github.com/shadcn.png",
-    },
-
-  ];
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error fetching jobs</div>;
+  if (data) console.log("Data", data);
 
   return (
     <>
@@ -102,21 +29,17 @@ export default function Home() {
       <div className="flex flex-col min-h-screen">
         <main className="flex-grow px-9 pb-6">
           <section className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {loading
+            {isLoading
               ? Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />)
-              : jobData.map((job) => (
-                  <div
-                    key={job.id}
-                    onMouseEnter={() => setHoveredCard(job.id)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
+              : data?.map((job) => (
+                  <div key={job.id}>
                     <JobCard
                     title={job.title}
                     salary={job.salary}
                     company={job.company}
                     location={job.location}
                     logoUrl={job.logoUrl}
-                    isHovered={hoveredCard === job.id} id={""}                    />
+                    isHovered={hoveredCard === job.id} id={""} />
                   </div>
                 ))}
           </section>

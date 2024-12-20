@@ -1,17 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Bookmark, MapPin } from "lucide-react"; // Import the filled bookmark icon
+import { Bookmark, MapPin } from "lucide-react"; 
 import Image from "next/image";
+import { JobCardProps } from "@/types/job";
 
-interface JobCardProps {
-  id: string | number;
-  title: string;
-  salary: string;
-  company: string;
-  location: string;
-  logoUrl: string;
-  isHovered?: boolean;
-}
 
 const JobCard: React.FC<JobCardProps> = ({
   title,
@@ -19,12 +12,20 @@ const JobCard: React.FC<JobCardProps> = ({
   company,
   location,
   logoUrl,
-  isHovered = false,
 }) => {
+
+    const [isHovered, setIsHovered] = useState<boolean>(false);
+
   return (
     <Card
       className={`w-full h-40 border border-gray-200 shadow-md rounded-sm overflow-hidden transition-transform ease-in-out duration-300 transform
-        ${isHovered ? "scale-105 border-gray-300 shadow-lg bg-gradient-to-r from-orange-100 to-white" : "bg-gradient-to-r from-gray-50 via-white to-gray-50"}`}
+        ${
+          isHovered
+            ? "scale-105 border-gray-300 shadow-lg bg-gradient-to-r from-orange-100 to-white"
+            : "bg-gradient-to-r from-gray-50 via-white to-gray-50"
+        }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <CardHeader className="p-3 text-left mr-8 ml-2">
         <CardTitle className="text-base font-semibold mb-1">{title}</CardTitle>
@@ -51,7 +52,6 @@ const JobCard: React.FC<JobCardProps> = ({
             {location}
           </div>
         </div>
-        {/* Conditionally render the bookmark icon */}
           <Bookmark
             className="h-5 w-5 text-black hover:text-black ml-auto mr-2"
             
@@ -62,3 +62,5 @@ const JobCard: React.FC<JobCardProps> = ({
 };
 
 export default JobCard;
+
+
