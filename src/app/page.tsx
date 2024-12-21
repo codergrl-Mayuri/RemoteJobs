@@ -25,7 +25,7 @@ export default function JobsPage() {
     queryKey: ["jobs"],
     queryFn: ({ pageParam = 1 }) => fetchJobs(pageParam as number),
     getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length > 0 ? allPages.length + 1: undefined;
+      return lastPage.length > 0 ? allPages.length + 20: undefined;
     },
     initialPageParam: 1,
    });
@@ -80,7 +80,7 @@ export default function JobsPage() {
                     company={job.company}
                     location={job.location}
                     logoUrl={job.logoUrl}
-                    pageIndex={pageIndex}  // Pass pageIndex for unique ID generation
+                    pageIndex={pageIndex}  
                   />
                 </div>
               ))

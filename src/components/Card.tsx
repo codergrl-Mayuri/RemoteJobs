@@ -5,13 +5,13 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 
 interface JobCardProps {
-  index: number; // Using index as a fallback for now
+  index: number; 
   title: string;
   salary: string;
   company: string;
   location: string;
   logoUrl: string;
-  pageIndex: number; // This will be used to generate a unique ID
+  pageIndex: number; 
 }
 
 const JobCard: React.FC<JobCardProps> = ({
@@ -25,26 +25,23 @@ const JobCard: React.FC<JobCardProps> = ({
 }) => {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
 
-  // Generate a unique ID combining the pageIndex and job index
   const uniqueJobId = `${pageIndex}-${index}`;
 
-  // Check bookmark state when the component mounts or when id changes
   useEffect(() => {
     const bookmarkedJobs = JSON.parse(localStorage.getItem("bookmarkedJobs") || "[]");
-    setIsBookmarked(bookmarkedJobs.includes(uniqueJobId));  // Now using unique 'id' for bookmark check
+    setIsBookmarked(bookmarkedJobs.includes(uniqueJobId));  
   }, [uniqueJobId]);
 
-  // Toggle the bookmark state
+  
   const toggleBookmark = () => {
     const bookmarkedJobs = JSON.parse(localStorage.getItem("bookmarkedJobs") || "[]");
 
-    // If it's already bookmarked, remove it
+    
     if (isBookmarked) {
       const updatedBookmarks = bookmarkedJobs.filter((jobId: string) => jobId !== uniqueJobId);
       localStorage.setItem("bookmarkedJobs", JSON.stringify(updatedBookmarks));
       setIsBookmarked(false);
     } else {
-      // If it's not bookmarked, add it
       if (!bookmarkedJobs.includes(uniqueJobId)) {
         const updatedBookmarks = [...bookmarkedJobs, uniqueJobId];
         localStorage.setItem("bookmarkedJobs", JSON.stringify(updatedBookmarks));
@@ -81,7 +78,6 @@ const JobCard: React.FC<JobCardProps> = ({
             {location}
           </div>
         </div>
-        {/* Conditionally render the bookmark icon */}
         {isBookmarked ? (
           <BookmarkCheck
             className="h-5 w-5 text-black hover:text-black ml-auto mr-2"

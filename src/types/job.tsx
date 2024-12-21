@@ -2,7 +2,11 @@ export interface JobCardProps {
     id: string | number;
     title: string;
     salary: string;
+    tags: string[];
+    postedTime: string;
+    description: string;
     company: string;
+    applyLink: string;
     location: string;
     logoUrl: string;
   }
