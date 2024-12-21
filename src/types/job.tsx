@@ -5,7 +5,6 @@ export interface JobCardProps {
     company: string;
     location: string;
     logoUrl: string;
-    isHovered?: boolean;
   }
 
   export interface JobDetailsFromHtml {

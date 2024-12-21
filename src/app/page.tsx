@@ -1,21 +1,61 @@
 'use client'
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import JobCard from "@/components/Card";
 import SkeletonCard from "@/components/SkeletonCard";
 import SearchBar from "@/components/SearchBar";
 import { Toaster } from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchJobs } from "@/services/jobService";
+import { JobCardProps } from "@/types/job";
 
 export default function JobsPage() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["jobs", 1],
-    queryFn: () => fetchJobs(1),
-  });
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+
+  const observerTargetRef = useRef<HTMLDivElement | null>(null);
+
+  const { 
+    data, 
+    isLoading, 
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+   } = useInfiniteQuery<JobCardProps[], Error>({
+    queryKey: ["jobs"],
+    queryFn: ({ pageParam = 1 }) => fetchJobs(pageParam as number),
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length > 0 ? allPages.length + 1: undefined;
+    },
+    initialPageParam: 1,
+   });
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const target =entries[0];
+      if(target.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    [hasNextPage, isFetchingNextPage, fetchNextPage]
+  );
+  
+  useEffect(() => {
+    const element = observerTargetRef.current;
+    const observer = new IntersectionObserver(handleObserver,{
+      root: null,
+      rootMargin: "100px",
+      threshold: 1.0,
+    });
+    if (element) observer.observe(element);
+    return () => {
+      if (element) observer.unobserve(element);
+    };
+  }, [observerTargetRef, handleObserver]);
+  console.log("data", data);
+  if (isLoading) return <div>Loading...</div>
+  if (error) return <div>Error Fetching Data</div>
+
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error fetching jobs</div>;
@@ -29,20 +69,24 @@ export default function JobsPage() {
       <div className="flex flex-col min-h-screen">
         <main className="flex-grow px-9 pb-6">
           <section className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, index) => <SkeletonCard key={index} />)
-              : data?.map((job) => (
+              {data?.pages.map((page) => 
+                page.map((job) => (
                   <div key={job.id}>
                     <JobCard
                     title={job.title}
                     salary={job.salary}
                     company={job.company}
                     location={job.location}
-                    logoUrl={job.logoUrl}
-                    isHovered={hoveredCard === job.id} id={""} />
+                    logoUrl={job.logoUrl} />
                   </div>
-                ))}
+                ))
+                )}
+                {isFetchingNextPage && 
+                  Array.from({ length: 6 }).map((_, index) => (
+                <SkeletonCard key={index} />
+                  ))}
           </section>
+          <div ref={observerTargetRef} className="observer-target" />
         </main>
         <Footer />
       </div>
