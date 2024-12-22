@@ -2,11 +2,37 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, LocateFixed, MapPin } from "lucide-react"; 
 import { useGeolocation } from "@/hooks/useGeolocation";
-import React from "react";
+import React, { useEffect } from "react";
 
-export default function SearchBar() {
+interface SearchBarProps {
+    initialKeyword ?: string;
+    initialLocation ?: string;
+    onKeywordSearch: (value: string) => void;
+    onLocationSearch: (value: string) => void;
+  }
+
+export default function SearchBar({
+    initialKeyword = "",
+    initialLocation = "",
+    onKeywordSearch,
+    onLocationSearch,
+}: SearchBarProps) {
 
     const { location, isActive, handleGetLocation } = useGeolocation();
+
+    const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onKeywordSearch(e.target.value);
+    };
+
+    const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onLocationSearch(e.target.value);
+    };
+
+    useEffect(() => {
+        if (location) {
+            onLocationSearch(location);
+        }
+    },[location, onLocationSearch]);
 
   return (
     <div className={`w-full pt-10 p-4 flex justify-center transition-all duration-300`}>
@@ -15,7 +41,8 @@ export default function SearchBar() {
           <Search className="absolute left-3 h-5 w-5 text-gray-400" />
           <Input
             type="text"
-            value={""}
+            value={initialKeyword}
+            onChange={handleKeywordChange}
             placeholder="Search by: Job title, Position, Keyword, City, State or Country..."
             className="h-10 sm:h-12 border-none pl-8 sm:pl-10 pr-8 sm:pr-10 text-xs sm:text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
           />
@@ -31,7 +58,8 @@ export default function SearchBar() {
           <MapPin className="absolute left-3 h-5 w-5 text-gray-400" />
           <Input
             type="text"
-            value={location || ""}
+            value={initialLocation}
+            onChange={handleLocationChange}
             placeholder="City, state or country"
             className="h-10 sm:h-12 border-none pl-8 sm:pl-10 pr-8 sm:pr-10 text-xs sm:text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
           />

@@ -5,54 +5,63 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 
 interface JobCardProps {
-  index: number; 
+  id: string | number; 
   title: string;
   salary: string;
   company: string;
   location: string;
   logoUrl: string;
-  pageIndex: number; 
+
 }
 
 const JobCard: React.FC<JobCardProps> = ({
-  index,
+  id,
   title,
   salary,
   company,
   location,
   logoUrl,
-  pageIndex,
+
 }) => {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
-
-  const uniqueJobId = `${pageIndex}-${index}`;
+  const [isHovered, setIsHovered] = useState<boolean>(false);
 
   useEffect(() => {
-    const bookmarkedJobs = JSON.parse(localStorage.getItem("bookmarkedJobs") || "[]");
-    setIsBookmarked(bookmarkedJobs.includes(uniqueJobId));  
-  }, [uniqueJobId]);
+    const bookmarkedJobs = JSON.parse(
+      localStorage.getItem("bookmarkedJobs") || "[]"
+    );
+    setIsBookmarked(bookmarkedJobs.includes(id));
+  }, [id]);
 
-  
   const toggleBookmark = () => {
-    const bookmarkedJobs = JSON.parse(localStorage.getItem("bookmarkedJobs") || "[]");
+    const bookmarkedJobs = JSON.parse(
+      localStorage.getItem("bookmarkedJobs") || "[]"
+    );
 
-    
     if (isBookmarked) {
-      const updatedBookmarks = bookmarkedJobs.filter((jobId: string) => jobId !== uniqueJobId);
+      const updatedBookmarks = bookmarkedJobs.filter(
+        (jobId: string | number) => jobId !== id
+      );
       localStorage.setItem("bookmarkedJobs", JSON.stringify(updatedBookmarks));
       setIsBookmarked(false);
     } else {
-      if (!bookmarkedJobs.includes(uniqueJobId)) {
-        const updatedBookmarks = [...bookmarkedJobs, uniqueJobId];
-        localStorage.setItem("bookmarkedJobs", JSON.stringify(updatedBookmarks));
-        setIsBookmarked(true);
-      }
+      const updatedBookmarks = [...bookmarkedJobs, id];
+      localStorage.setItem("bookmarkedJobs", JSON.stringify(updatedBookmarks));
+      setIsBookmarked(true);
     }
   };
 
   return (
-    <Card className="w-full h-40 border border-gray-200 shadow-md rounded-sm overflow-hidden transition-transform ease-in-out duration-300 transform 
-      hover:scale-105 hover:border-gray-300 hover:shadow-lg hover:bg-gradient-to-r hover:from-orange-100 hover:to-white bg-gradient-to-r from-gray-50 via-white to-gray-50">
+    <Card
+      className={`w-full h-40 border border-gray-200 shadow-md rounded-sm overflow-hidden transition-transform ease-in-out duration-300 transform
+        ${
+          isHovered
+            ? "scale-105 border-gray-300 shadow-lg bg-gradient-to-r from-orange-100 to-white"
+            : "bg-gradient-to-r from-gray-50 via-white to-gray-50"
+        }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <CardHeader className="p-3 text-left mr-8 ml-2">
         <CardTitle className="text-base font-semibold mb-1">{title}</CardTitle>
         <div className="flex items-left gap-3">

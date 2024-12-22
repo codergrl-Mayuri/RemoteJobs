@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
-// Custom hook for geolocation
 export function useGeolocation() {
   const [location, setLocation] = useState<string | null>(null);
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -22,16 +21,16 @@ export function useGeolocation() {
 
   const handleGetLocation = () => {
     if (isActive) {
-      setLocation(null);
+      setLocation(null); 
       setIsActive(false);
       return;
     }
-
+  
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by your browser.");
       return;
     }
-
+  
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -40,7 +39,7 @@ export function useGeolocation() {
           setLocation(cityName);
           setIsActive(true);
         } catch (error) {
-          console.log(error)  
+          console.log(error);
           toast.error("Failed to fetch city name.");
         }
       },
@@ -53,6 +52,7 @@ export function useGeolocation() {
       }
     );
   };
+  
 
   return { location, isActive, handleGetLocation };
 }
