@@ -5,7 +5,7 @@ import { JobCardProps } from "../types/job";
 const BASE_URL = "https://remote-jobs.remote-jobs-legacy.workers.dev/jobs";
 export const MIN_JOBS_COUNT = 12; 
 
-interface FilterParams {
+export interface FilterParams {
   keyword?: string;
   location?: string;
 }

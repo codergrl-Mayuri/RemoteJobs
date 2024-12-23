@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   fetchJobs,
   filterJobs,
+  FilterParams,
   MIN_JOBS_COUNT,
 } from "@/services/jobService";
 import Header from "@/components/Header";
@@ -11,20 +12,30 @@ import SearchBar from "@/components/SearchBar";
 import JobCard from "@/components/Card";
 import Footer from "@/components/Footer";
 import SkeletonCard from "@/components/SkeletonCard";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import debounce from "lodash/debounce";
+import React, { useRef, useCallback, useEffect } from "react";
+import {  useRouter } from "next/navigation";
+// import debounce from "lodash/debounce";
 import { Toaster } from "react-hot-toast";
 
-export default function JobsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const observerTargetRef = useRef(null);
 
-  const [filters, setFilters] = useState({
-    keyword: searchParams.get("keyword") || "",
-    location: searchParams.get("location") || "",
+
+
+
+
+export default function JobsPage(props: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const router = useRouter();
+  const observerTargetRef = useRef(null);
+  const searchParams = React.use(props.searchParams);
+  const filters: FilterParams = ({
+    keyword: searchParams?.keyword || "",
+    location: searchParams?.location || "",
   });
+
+  const setFilters = (newFilters: typeof filters) =>{
+    router.push(`/?keyword=${newFilters.keyword}&location=${newFilters.location}`);
+  };
 
   const {
     data,
@@ -47,29 +58,27 @@ export default function JobsPage() {
   });
 
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const updateURL = useCallback(
-    debounce((newFilters: Record<string, string | undefined | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
+  // const updateURL = useCallback(
+  //   debounce((newFilters: Record<string, string | undefined | null>) => {
+  //     const params = new URLSearchParams(searchParams.toString());
   
-      Object.entries(newFilters).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        } else {
-          params.delete(key);
-        }
-      });
+  //     Object.entries(newFilters).forEach(([key, value]) => {
+  //       if (value) {
+  //         params.set(key, value);
+  //       } else {
+  //         params.delete(key);
+  //       }
+  //     });
   
-      router.push(`?${params.toString()}`);
-    }, 500),
-    [searchParams, router]
-  );
+  //     router.push(`?${params.toString()}`);
+  //   }, 500),
+  //   [searchParams, router]
+  // );
 
 
   const handleFilterChange = (type: "keyword" | "location", value: string) => {
     const newFilters = { ...filters, [type]: value };
     setFilters(newFilters);
-    updateURL(newFilters);
   };
 
 
@@ -95,7 +104,7 @@ export default function JobsPage() {
 
   useEffect(() => {
     console.log("observerTargetRef", observerTargetRef);
-    console.log("Ivan than da");
+
     const element = observerTargetRef.current;
     const observer = new IntersectionObserver(handleObserver, {
       root: null,
