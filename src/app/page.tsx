@@ -12,12 +12,10 @@ import SearchBar from "@/components/SearchBar";
 import JobCard from "@/components/Card";
 import Footer from "@/components/Footer";
 import SkeletonCard from "@/components/SkeletonCard";
-import React, { useRef, useCallback, useEffect } from "react";
-import {  useRouter } from "next/navigation";
+import React, { useRef, useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import debounce from "lodash/debounce";
 import { Toaster } from "react-hot-toast";
-
-
 
 export default function JobsPage(props: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
@@ -25,14 +23,26 @@ export default function JobsPage(props: {
   const router = useRouter();
   const observerTargetRef = useRef(null);
   const searchParams = React.use(props.searchParams);
-  const filters: FilterParams = ({
+  const [localFilters, setLocalFilters] = useState({
     keyword: searchParams?.keyword || "",
     location: searchParams?.location || "",
   });
 
-  const setFilters = (newFilters: typeof filters) =>{
-    router.push(`/?keyword=${newFilters.keyword}&location=${newFilters.location}`);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedUpdateURL = useCallback(
+    debounce((newFilters: FilterParams) => {
+      router.push(`/?keyword=${newFilters.keyword}&location=${newFilters.location}`);
+    }, 500),
+    [router]
+  );
+
+  const handleFilterChange = useCallback((type: "keyword" | "location", value: string) => {
+    setLocalFilters(prev => {
+      const newFilters = { ...prev, [type]: value };
+      debouncedUpdateURL(newFilters);
+      return newFilters;
+    });
+  }, [debouncedUpdateURL]);
 
   const {
     data,
@@ -42,61 +52,19 @@ export default function JobsPage(props: {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["jobs", filters],
-    queryFn: ({ pageParam = 1 }) => fetchJobs(pageParam, filters),
-    getNextPageParam: (lastPage, allPages) => {
-      console.log("lastPage", lastPage);
-      console.log("allPages", allPages);
-      return lastPage.length >= MIN_JOBS_COUNT
-        ? allPages.length * 20 + 1
-        : undefined;
-    },
+    queryKey: ["jobs", searchParams],
+    queryFn: ({ pageParam = 1 }) => fetchJobs(pageParam, searchParams as FilterParams),
+    getNextPageParam: (lastPage, allPages) => 
+      lastPage.length >= MIN_JOBS_COUNT ? allPages.length * 20 + 1 : undefined,
     initialPageParam: 1,
   });
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedHandleFilterChange = useCallback(
-    debounce((type: "keyword" | "location", value: string) => {
-      const newFilters = { ...filters, [type]: value };
-      setFilters(newFilters);
-    }, 100), // Adjust debounce delay (in ms) as needed
-    [filters, setFilters]
-  );
-
-  // const updateURL = useCallback(
-  //   debounce((newFilters: Record<string, string | undefined | null>) => {
-  //     const params = new URLSearchParams(searchParams.toString());
-  
-  //     Object.entries(newFilters).forEach(([key, value]) => {
-  //       if (value) {
-  //         params.set(key, value);
-  //       } else {
-  //         params.delete(key);
-  //       }
-  //     });
-  
-  //     router.push(`?${params.toString()}`);
-  //   }, 500),
-  //   [searchParams, router]
-  // );
-
-
-  // const handleFilterChange = (type: "keyword" | "location", value: string) => {
-  //   const newFilters = { ...filters, [type]: value };
-  //   setFilters(newFilters);
-  // };
-
-
-  const filteredJobs = data?.pages.flatMap((page) =>
-    filterJobs(page, filters)
-  ) || [];
-
-  const uniqueFilteredJobs = filteredJobs.filter(
-    (v, i, a) => a.findIndex((t) => t.id === v.id) === i
-  );
-
-  console.log("filteredJobs in ui", uniqueFilteredJobs);
-
+  const filteredJobs = React.useMemo(() => {
+    const allJobs = data?.pages.flat() || [];
+    return filterJobs(allJobs, localFilters).filter(
+      (v, i, a) => a.findIndex((t) => t.id === v.id) === i
+    );
+  }, [data?.pages, localFilters]);
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -109,8 +77,6 @@ export default function JobsPage(props: {
   );
 
   useEffect(() => {
-    console.log("observerTargetRef", observerTargetRef);
-
     const element = observerTargetRef.current;
     const observer = new IntersectionObserver(handleObserver, {
       root: null,
@@ -122,8 +88,7 @@ export default function JobsPage(props: {
     return () => {
       if (element) observer.unobserve(element);
     };
-  }, [observerTargetRef, handleObserver]);
-
+  }, [handleObserver]);
 
   if (error) return <div>Error fetching jobs</div>;
 
@@ -133,10 +98,10 @@ export default function JobsPage(props: {
       <Header />
       <main className="container mx-auto px-3 py-4 min-h-screen">
         <SearchBar
-          initialKeyword={filters.keyword}
-          initialLocation={filters.location}
-          onKeywordSearch={(value) => debouncedHandleFilterChange("keyword", value)}
-          onLocationSearch={(value) => debouncedHandleFilterChange("location", value)}
+          initialKeyword={localFilters.keyword}
+          initialLocation={localFilters.location}
+          onKeywordSearch={(value) => handleFilterChange("keyword", value)}
+          onLocationSearch={(value) => handleFilterChange("location", value)}
         />
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -144,7 +109,7 @@ export default function JobsPage(props: {
               <SkeletonCard key={index} />
             ))}
           </div>
-        ) : uniqueFilteredJobs.length === 0 ? (
+        ) : filteredJobs.length === 0 ? (
           <div className="flex justify-center items-center mt-20">
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-700">
@@ -157,7 +122,7 @@ export default function JobsPage(props: {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-            {uniqueFilteredJobs.map((job) => (
+            {filteredJobs.map((job) => (
               <div key={job.id}>
                 <JobCard
                   id={job.id}
